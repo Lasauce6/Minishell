@@ -28,6 +28,7 @@ int parse_line(char *s, char ***argv) {
 
 int main() {
 	while (1) {
+		// dup2(STDOUT_FILENO, STDERR_FILENO);
 		printf("$ ");
 		char *buf = malloc(1024);
 		scanf(" %[^\n]", buf);
@@ -38,6 +39,28 @@ int main() {
 
 		char **argv;
 		int argc = parse_line(buf, &argv);
+
+		char *output_file = NULL;
+
+		for (int i = 0; i < argc; i++) {
+			if (strcmp(argv[i], ">") == 0) {
+				if (i + 1 < argc && argv[i + 1] != NULL && argv[i + 2] == NULL) {
+					output_file = strdup(argv[i + 1]);
+				}
+				break;
+
+			}
+		}
+
+		if (output_file != NULL) {
+			int fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			if (fd == -1) {
+				perror("Erreur lors de l'ouverture du fichier de sortie");
+				exit(EXIT_FAILURE);
+			}
+			dup2(fd, STDOUT_FILENO);
+			close(fd);
+		}
 
 		if (fork() == 0) {
 			// enfant
@@ -54,5 +77,9 @@ int main() {
 		}
 		free(argv);
 		free(buf);
+		if (output_file != NULL) {
+			free(output_file);
+		}
+		
 	}
 }
