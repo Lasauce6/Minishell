@@ -63,6 +63,7 @@ int main() {
 			close(fd);
 		}
 
+
 		if (fork() == 0) {
 			// enfant
 			execvp(argv[0], argv);
@@ -82,9 +83,5 @@ int main() {
 		}
 		free(argv);
 		free(buf);
-		if (output_file != NULL) {
-			free(output_file);
-		}
-		
 	}
 }
