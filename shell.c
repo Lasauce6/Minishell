@@ -28,7 +28,6 @@ int parse_line(char *s, char ***argv) {
 
 int main() {
 	while (1) {
-		// dup2(STDOUT_FILENO, STDERR_FILENO);
 		printf("$ ");
 		char *buf = malloc(1024);
 		scanf(" %[^\n]", buf);
@@ -41,6 +40,7 @@ int main() {
 		int argc = parse_line(buf, &argv);
 
 		char *output_file = NULL;
+		int saved_stdout = dup(STDOUT_FILENO);
 
 		for (int i = 0; i < argc; i++) {
 			if (strcmp(argv[i], ">") == 0) {
@@ -59,6 +59,7 @@ int main() {
 				exit(EXIT_FAILURE);
 			}
 			dup2(fd, STDOUT_FILENO);
+			argv[argc - 2] = NULL;
 			close(fd);
 		}
 
@@ -70,6 +71,10 @@ int main() {
 		} else {
 			// parent
 			wait(NULL);
+		}
+
+		if (output_file != NULL) {
+			dup2(saved_stdout, STDOUT_FILENO);
 		}
 
 		for (int i = 0; i < argc; i++) {
